@@ -19,7 +19,6 @@ package org.apache.cassandra.metrics;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
-import java.nio.charset.CharacterCodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumMap;
