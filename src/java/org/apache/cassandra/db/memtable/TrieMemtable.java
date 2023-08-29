@@ -53,6 +53,7 @@ import org.apache.cassandra.db.partitions.Partition;
 import org.apache.cassandra.db.partitions.PartitionUpdate;
 import org.apache.cassandra.db.rows.EncodingStats;
 import org.apache.cassandra.db.rows.Row;
+import org.apache.cassandra.db.rows.Unfiltered;
 import org.apache.cassandra.db.rows.UnfilteredRowIterator;
 import org.apache.cassandra.db.tries.MemtableTrie;
 import org.apache.cassandra.db.tries.Trie;
@@ -281,6 +282,21 @@ public class TrieMemtable extends AbstractAllocatorMemtable
         return total;
     }
 
+    public long rowCount(final ColumnFilter columnFilter, final DataRange dataRange)
+    {
+        int total = 0;
+        for (MemtableUnfilteredPartitionIterator iter = makePartitionIterator(columnFilter, dataRange); iter.hasNext(); )
+        {
+            for (UnfilteredRowIterator it = iter.next(); it.hasNext(); )
+            {
+                Unfiltered uRow = it.next();
+                if (uRow.isRow())
+                    total++;
+            }
+        }
+
+        return total;
+    }
     @Override
     public long getMinTimestamp()
     {
@@ -544,6 +560,16 @@ public class TrieMemtable extends AbstractAllocatorMemtable
         public int size()
         {
             return data.valuesCount();
+        }
+
+        public long numberOfRows()
+        {
+            long total = 0;
+            for (BTreePartitionData v: data.values())
+            {
+                total += v.tree.length;
+            }
+            return total;
         }
 
         long minTimestamp()
