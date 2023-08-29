@@ -31,7 +31,9 @@ import org.apache.cassandra.config.Config;
 import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.cql3.CQLTester;
 import org.apache.cassandra.db.ColumnFamilyStore;
+import org.apache.cassandra.db.DataRange;
 import org.apache.cassandra.db.Keyspace;
+import org.apache.cassandra.db.filter.ColumnFilter;
 import org.apache.cassandra.utils.FBUtilities;
 import org.github.jamm.MemoryMeter;
 
@@ -133,6 +135,15 @@ public class MemtableSizeTestBase extends CQLTester
                 for (long j = 0; j < rowsPerPartition; ++j)
                     execute(writeStatement, i, j, i + j);
             }
+
+            // add test to row count in memtable
+            if(memtable instanceof TrieMemtable)
+            {
+                ColumnFilter.Builder builder = ColumnFilter.allRegularColumnsBuilder(cfs.metadata(), true);
+                long rowCount = ((TrieMemtable)cfs.getTracker().getView().getCurrentMemtable()).rowCount(builder.build(), DataRange.allData(cfs.getPartitioner()));
+                Assert.assertEquals(rowCount, partitions*rowsPerPartition);
+            }
+
 
             System.out.println("Deleting " + deletedPartitions + " partitions");
             limit += deletedPartitions;
