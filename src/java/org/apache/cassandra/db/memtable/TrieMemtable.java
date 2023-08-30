@@ -562,16 +562,6 @@ public class TrieMemtable extends AbstractAllocatorMemtable
             return data.valuesCount();
         }
 
-        public long numberOfRows()
-        {
-            long total = 0;
-            for (BTreePartitionData v: data.values())
-            {
-                total += v.tree.length;
-            }
-            return total;
-        }
-
         long minTimestamp()
         {
             return minTimestamp;
